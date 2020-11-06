@@ -52,7 +52,7 @@
 // Anti gravity I constant
 #define AG_KI 21.586988f;
 
-#define ITERM_ACCELERATOR_GAIN_OFF 1000
+#define ITERM_ACCELERATOR_GAIN_OFF 0
 #define ITERM_ACCELERATOR_GAIN_MAX 30000
 typedef enum {
     PID_ROLL,
@@ -149,7 +149,6 @@ typedef struct pidProfile_s {
     uint16_t crash_delay;                   // ms
     uint8_t crash_recovery_angle;           // degrees
     uint8_t crash_recovery_rate;            // degree/second
-    uint8_t vbatPidCompensation;            // Scale PIDsum to battery voltage
     uint8_t feedForwardTransition;          // Feed forward weight transition
     uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
     uint16_t itermLimit;
@@ -197,7 +196,6 @@ typedef struct pidProfile_s {
 
     uint8_t ff_interpolate_sp;              // Calculate FF from interpolated setpoint
     uint8_t ff_max_rate_limit;              // Maximum setpoint rate percentage for FF
-    uint8_t ff_spike_limit;                 // FF stick extrapolation lookahead period in ms
     uint8_t ff_smooth_factor;               // Amount of smoothing for interpolated FF steps
     uint8_t dyn_lpf_curve_expo;             // set the curve for dynamic dterm lowpass filter
     uint8_t level_race_mode;                // NFE race mode - when true pitch setpoint calcualtion is gyro based in level mode
@@ -255,10 +253,11 @@ typedef struct pidRuntime_s {
     bool antiGravityEnabled;
     uint8_t antiGravityMode;
     pt1Filter_t antiGravityThrottleLpf;
+    pt1Filter_t antiGravitySmoothLpf;
     float antiGravityOsdCutoff;
     float antiGravityThrottleHpf;
+    float antiGravityPBoost;
     float ffBoostFactor;
-    float ffSpikeLimitInverse;
     float itermAccelerator;
     uint16_t itermAcceleratorGain;
     float feedForwardTransition;
@@ -352,8 +351,7 @@ typedef struct pidRuntime_s {
 
 #ifdef USE_THRUST_LINEARIZATION
     float thrustLinearization;
-    float thrustLinearizationReciprocal;
-    float thrustLinearizationB;
+    float throttleCompensateAmount;
 #endif
 
 #ifdef USE_AIRMODE_LPF
@@ -415,5 +413,4 @@ float pidGetDT();
 float pidGetPidFrequency();
 float pidGetFfBoostFactor();
 float pidGetFfSmoothFactor();
-float pidGetSpikeLimitInverse();
-float dynDtermLpfCutoffFreq(float throttle, uint16_t dynLpfMin, uint16_t dynLpfMax, uint8_t expo);
+float dynLpfCutoffFreq(float throttle, uint16_t dynLpfMin, uint16_t dynLpfMax, uint8_t expo);

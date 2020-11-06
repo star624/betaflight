@@ -54,6 +54,7 @@
 #endif
 
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
+#define ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF 3  // The anti gravity P smoothing filter cutoff
 
 static void pidSetTargetLooptime(uint32_t pidLooptime)
 {
@@ -202,9 +203,9 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 #endif
 
     pt1FilterInit(&pidRuntime.antiGravityThrottleLpf, pt1FilterGain(ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF, pidRuntime.dT));
+    pt1FilterInit(&pidRuntime.antiGravitySmoothLpf, pt1FilterGain(ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF, pidRuntime.dT));
 
     pidRuntime.ffBoostFactor = (float)pidProfile->ff_boost / 10.0f;
-    pidRuntime.ffSpikeLimitInverse = pidProfile->ff_spike_limit ? 1.0f / ((float)pidProfile->ff_spike_limit / 10.0f) : 0.0f;
 }
 
 void pidInit(const pidProfile_t *pidProfile)
@@ -310,7 +311,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     // of AG activity without excessive display.
     pidRuntime.antiGravityOsdCutoff = 0.0f;
     if (pidRuntime.antiGravityMode == ANTI_GRAVITY_SMOOTH) {
-        pidRuntime.antiGravityOsdCutoff += ((pidRuntime.itermAcceleratorGain - 1000) / 1000.0f) * 0.25f;
+        pidRuntime.antiGravityOsdCutoff += (pidRuntime.itermAcceleratorGain / 1000.0f) * 0.25f;
     }
 
 #if defined(USE_ITERM_RELAX)
@@ -375,10 +376,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
 #ifdef USE_THRUST_LINEARIZATION
     pidRuntime.thrustLinearization = pidProfile->thrustLinearization / 100.0f;
-    if (pidRuntime.thrustLinearization != 0.0f) {
-        pidRuntime.thrustLinearizationReciprocal = 1.0f / pidRuntime.thrustLinearization;
-        pidRuntime.thrustLinearizationB = (1.0f - pidRuntime.thrustLinearization) / (2.0f * pidRuntime.thrustLinearization);
-    }
+    pidRuntime.throttleCompensateAmount = pidRuntime.thrustLinearization - 0.5f * powerf(pidRuntime.thrustLinearization, 2);
 #endif
 #if defined(USE_D_MIN)
     for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {

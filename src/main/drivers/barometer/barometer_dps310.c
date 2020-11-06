@@ -42,9 +42,12 @@
 #include "drivers/barometer/barometer_dps310.h"
 #include "drivers/resource.h"
 
+// 10 MHz max SPI frequency
+#define DPS310_MAX_SPI_CLK_HZ 10000000
+
 #if defined(USE_BARO) && defined(USE_BARO_DPS310)
 
-#define DPS310_I2C_ADDR             0x77
+#define DPS310_I2C_ADDR             0x76
 
 #define DPS310_REG_PSR_B2           0x00
 #define DPS310_REG_PSR_B1           0x01
@@ -325,9 +328,9 @@ static void busDeviceInit(busDevice_t *busdev, resourceOwner_e owner)
         IOInit(busdev->busdev_u.spi.csnPin, owner, 0);
         IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
 #ifdef USE_SPI_TRANSACTION
-        spiBusTransactionInit(busdev, SPI_MODE0_POL_LOW_EDGE_1ST, SPI_CLOCK_STANDARD); // DPS310 supports Mode 0 or 3
+        spiBusTransactionInit(busdev, SPI_MODE0_POL_LOW_EDGE_1ST, spiCalculateDivider(DPS310_MAX_SPI_CLK_HZ)); // DPS310 supports Mode 0 or 3
 #else
-        spiBusSetDivisor(busdev, SPI_CLOCK_STANDARD);
+        spiBusSetDivisor(busdev, spiCalculateDivider(DPS310_MAX_SPI_CLK_HZ));
 #endif
     }
 #else
@@ -372,6 +375,8 @@ bool baroDPS310Detect(baroDev_t *baro)
         busDeviceDeInit(busdev);
         return false;
     }
+
+    busDeviceRegister(busdev);
 
     const uint32_t baroDelay = 1000000 / 32 / 2;      // twice the sample rate to capture all new data
 
