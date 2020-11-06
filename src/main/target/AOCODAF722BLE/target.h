@@ -74,6 +74,12 @@
 
 #define USE_BARO
 #define USE_BARO_BMP280
+
+
+#define USE_MAG
+#define USE_MAG_HMC5883
+#define USE_MAG_QMC5883
+#define USE_MAG_LIS3MDL
 // *************** SPI FLASH **************************
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
@@ -121,23 +127,17 @@
 
 #define SERIAL_PORT_COUNT       6
 
-
-
-
-
-
-
 #define USE_ADC
-#define ADC_INSTANCE                        ADC3
-#define ADC3_DMA_OPT                        0  // DMA 2 Stream 0 Channel 2
+#define ADC_INSTANCE                        ADC1
+#define ADC1_DMA_OPT                        0  // DMA 2 Stream 0 Channel 2
 
 
 #define VBAT_ADC_PIN                        PC2
 #define CURRENT_METER_ADC_PIN               PC1
 #define RSSI_ADC_PIN                        PC3
 
-#define CURRENT_METER_SCALE_DEFAULT         166
-#define VBAT_SCALE_DEFAULT          160
+#define CURRENT_METER_SCALE_DEFAULT         111
+#define VBAT_SCALE_DEFAULT          200
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
@@ -160,9 +160,8 @@
 
 // *************** activate/deactivate Bluetooth When disarmed/armed using PINIO_BOX *****************************
 #define USE_PINIO
-#define PINIO1_PIN PA15
-
 #define USE_PINIOBOX
+#define PINIO1_PIN PA15
 
 #define USABLE_TIMER_CHANNEL_COUNT 12
 #define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(8)|TIM_N(9))
